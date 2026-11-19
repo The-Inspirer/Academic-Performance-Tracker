@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academic Performance Tracker | College Portal</title>
+  <!-- Pure custom CSS (No external frameworks / CDN dependencies) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Header Navigation & Action -->
+    <header class="header">
+      <div class="header-main">
+        <div class="header-brand">
+          <div class="header-icon">🏛️</div>
+          <div>
+            <h1 class="header-title">Academic Performance Tracker</h1>
+            <p class="header-subtitle">Internal Assessment, Leaderboard &amp; Analytics</p>
+          </div>
+        </div>
+
+        <!-- Sleek + Add Student Record Action Button -->
+        <button type="button" id="open-modal-btn" class="btn btn-primary btn-add-student">
+          <span class="btn-icon">➕</span>
+          <span>Add Student Record</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Global Dynamic Alert / Notification Banner -->
+    <div id="alert-box" class="alert-box hidden" role="alert"></div>
+
+    <!-- Section 1: Analytics Summary Cards (Appears immediately at top) -->
+    <section class="analytics-row">
+      
+      <!-- Card 1: Unique Students Count -->
+      <div class="stat-card">
+        <div class="stat-icon icon-blue">👥</div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span id="stat-view-students">0</span>
+            <span class="stat-sub">/ <span id="stat-total-students">0</span></span>
+          </div>
+          <div class="stat-label">Unique Students (View / College)</div>
+        </div>
+      </div>
+
+      <!-- Card 2: Average Marks -->
+      <div class="stat-card">
+        <div class="stat-icon icon-indigo">📊</div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span id="stat-avg-marks">0.0</span>
+            <span class="stat-sub">/ 100</span>
+          </div>
+          <div class="stat-label">Batch Average Score</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Highest Marks -->
+      <div class="stat-card">
+        <div class="stat-icon icon-emerald">🎯</div>
+        <div class="stat-content">
+          <div class="stat-value">
+            <span id="stat-highest-marks">0</span>
+            <span class="stat-sub">/ 100</span>
+          </div>
+          <div class="stat-label">Highest Score in View</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Class Topper -->
+      <div class="stat-card">
+        <div class="stat-icon icon-amber">👑</div>
+        <div class="stat-content">
+          <div class="stat-value stat-topper" id="stat-topper-name">Loading...</div>
+          <div class="stat-label" id="stat-topper-meta">Rank 1 Performer</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Section 2: Leaderboard with Integrated Filter Toggles -->
+    <section class="card leaderboard-card">
+      <div class="card-header leaderboard-header">
+        <div class="leaderboard-heading">
+          <h2 class="card-title">🏆 Academic Leaderboard</h2>
+          <span id="student-count-badge" class="badge">Loading...</span>
+        </div>
+
+        <!-- Filter Controls Toolbar -->
+        <div class="filters-toolbar">
+          
+          <!-- Filter: Passing Year (Batch: 2027 to 2030) -->
+          <div class="filter-item">
+            <label for="filter-passing-year" class="filter-label">Batch:</label>
+            <select id="filter-passing-year" class="filter-select">
+              <option value="all" selected>All Batches</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+              <option value="2030">2030</option>
+            </select>
+          </div>
+
+          <!-- Filter: Academic Year -->
+          <div class="filter-item">
+            <label for="filter-year" class="filter-label">Year:</label>
+            <select id="filter-year" class="filter-select">
+              <option value="all">All Years</option>
+              <option value="1" selected>Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+          </div>
+
+          <!-- Filter: Semester (Strictly coupled to Year, default Semester 1) -->
+          <div class="filter-item">
+            <label for="filter-semester" class="filter-label">Semester:</label>
+            <select id="filter-semester" class="filter-select">
+              <!-- Dynamically populated and synced -->
+              <option value="all">All Semesters</option>
+              <option value="1" selected>Semester 1</option>
+              <option value="2">Semester 2</option>
+            </select>
+          </div>
+
+          <!-- Filter: Subject (Strictly coupled to Semester) -->
+          <div class="filter-item">
+            <label for="filter-subject" class="filter-label">Subject:</label>
+            <select id="filter-subject" class="filter-select">
+              <!-- Dynamically populated and synced -->
+              <option value="all" selected>All Subjects</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <div class="table-responsive">
+        <table class="students-table">
+          <thead>
+            <tr>
+              <th class="text-center">Rank</th>
+              <th>Roll No.</th>
+              <th>Student Name</th>
+              <th class="text-center">Batch</th>
+              <th class="text-center">Academic Term</th>
+              <th>Subject</th>
+              <th class="text-center">Mid-Sem <br><small class="th-sub">/ 20</small></th>
+              <th class="text-center">CT &amp; Viva <br><small class="th-sub">/ 30</small></th>
+              <th class="text-center">End-Sem <br><small class="th-sub">/ 50</small></th>
+              <th class="text-center">Total <br><small class="th-sub">/ 100</small></th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="students-table-body">
+            <tr>
+              <td colspan="11" class="text-center py-4 text-muted">Loading evaluation records...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Pure HTML/CSS/JS Modal Popup for Adding Records -->
+  <div id="add-student-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-header-info">
+          <h2 id="modal-title" class="modal-title">➕ Add Student Assessment Record</h2>
+          <span class="card-tag">Evaluation Scale: 20 + 30 + 50 = 100</span>
+        </div>
+        <button type="button" id="close-modal-btn" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      </div>
+
+      <!-- Modal Form -->
+      <form id="student-form" class="student-form" autocomplete="off">
+        <div class="form-grid">
+          
+          <!-- Roll Number -->
+          <div class="form-group">
+            <label for="roll_number">Roll Number <span class="required-star">*</span></label>
+            <input 
+              type="text" 
+              id="roll_number" 
+              name="roll_number" 
+              placeholder="e.g. 2026UCS1001" 
+              required 
+              maxlength="20"
+            >
+            <small id="roll-status-hint" class="field-hint"></small>
+          </div>
+
+          <!-- Student Full Name (Auto-locked if roll number already exists) -->
+          <div class="form-group col-span-2">
+            <label for="name">Student Full Name <span class="required-star">*</span></label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              placeholder="e.g. Diya Patel" 
+              required 
+              maxlength="60"
+            >
+            <small id="name-status-hint" class="field-hint"></small>
+          </div>
+
+          <!-- Passing Year (Batch: 2027 to 2030, auto-locked if roll exists) -->
+          <div class="form-group">
+            <label for="form-passing-year">Passing Year (Batch) <span class="required-star">*</span></label>
+            <select id="form-passing-year" name="passing_year" required>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+              <option value="2030" selected>2030</option>
+            </select>
+          </div>
+
+          <!-- Academic Year -->
+          <div class="form-group">
+            <label for="form-year">Academic Year <span class="required-star">*</span></label>
+            <select id="form-year" name="year" required>
+              <option value="1" selected>Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+            </select>
+          </div>
+
+          <!-- Semester (Strictly mapped to Year) -->
+          <div class="form-group">
+            <label for="form-semester">Semester <span class="required-star">*</span></label>
+            <select id="form-semester" name="semester" required>
+              <!-- Dynamically synced via JavaScript -->
+            </select>
+          </div>
+
+          <!-- Subject (Strictly mapped to Semester) -->
+          <div class="form-group col-span-2">
+            <label for="form-subject">Subject <span class="required-star">*</span></label>
+            <select id="form-subject" name="subject" required>
+              <!-- Dynamically synced via JavaScript -->
+            </select>
+          </div>
+
+          <!-- Mid-Sem (Max 20) -->
+          <div class="form-group">
+            <label for="mid_sem">Mid-Sem <span class="max-hint">(/ 20)</span></label>
+            <input 
+              type="number" 
+              id="mid_sem" 
+              name="mid_sem" 
+              min="0" 
+              max="20" 
+              step="any" 
+              placeholder="0 – 20" 
+              required
+            >
+          </div>
+
+          <!-- CT & Lab Viva (Max 30) -->
+          <div class="form-group">
+            <label for="ct_viva">CT &amp; Viva <span class="max-hint">(/ 30)</span></label>
+            <input 
+              type="number" 
+              id="ct_viva" 
+              name="ct_viva" 
+              min="0" 
+              max="30" 
+              step="any" 
+              placeholder="0 – 30" 
+              required
+            >
+          </div>
+
+          <!-- End-Sem (Max 50) -->
+          <div class="form-group">
+            <label for="end_sem">End-Sem <span class="max-hint">(/ 50)</span></label>
+            <input 
+              type="number" 
+              id="end_sem" 
+              name="end_sem" 
+              min="0" 
+              max="50" 
+              step="any" 
+              placeholder="0 – 50" 
+              required
+            >
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancel-modal-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="submit-btn" class="btn btn-primary">Save Assessment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Pure Vanilla JavaScript Fetch API (No external libraries) -->
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
